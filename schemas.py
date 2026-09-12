@@ -1,4 +1,4 @@
-from datetime import date
+import datetime
 from typing import Optional
 from pydantic import BaseModel, Field
 
@@ -30,7 +30,7 @@ class TransactionBase(BaseModel):
     transaction_type: str = Field(..., pattern="^(income|expense)$", description="Must be 'income' or 'expense'")
     category: str = Field(..., min_length=1, description="Category name")
     user_name: str = Field(..., min_length=1, description="Name of the person logging it")
-    date: Optional[date] = Field(default=None, description="Date of transaction (YYYY-MM-DD)")
+    date: Optional[datetime.date] = Field(default=None, description="Date of transaction (YYYY-MM-DD)")
     account: Optional[str] = Field(default="Main Account", description="Account used")
     notes: Optional[str] = Field(default=None, description="Optional note or reference")
 
@@ -68,7 +68,7 @@ class BudgetCategoryResponse(BudgetCategoryBase):
 class RecurringBillBase(BaseModel):
     title: str = Field(..., min_length=1, description="Bill title (e.g., Rent, Car Insurance)")
     amount: float = Field(..., gt=0, description="Bill amount")
-    due_date: date = Field(..., description="Payment due date (YYYY-MM-DD)")
+    due_date: datetime.date = Field(..., description="Payment due date (YYYY-MM-DD)")
     is_paid: bool = Field(default=False, description="Whether bill is paid")
 
 class RecurringBillCreate(RecurringBillBase):
@@ -89,7 +89,7 @@ class FinancialGoalBase(BaseModel):
     title: str = Field(..., min_length=1, description="Goal name (e.g., Emergency Fund)")
     target_amount: float = Field(..., gt=0, description="Target savings amount")
     current_amount: float = Field(default=0.0, ge=0, description="Current amount saved")
-    target_date: Optional[date] = Field(default=None, description="Target completion date (YYYY-MM-DD)")
+    target_date: Optional[datetime.date] = Field(default=None, description="Target completion date (YYYY-MM-DD)")
 
 class FinancialGoalCreate(FinancialGoalBase):
     pass
