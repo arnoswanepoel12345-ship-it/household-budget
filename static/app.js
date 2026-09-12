@@ -1,5 +1,6 @@
 let currentTransactions = [];
 let isLoginMode = true;
+let expenseChart = null;
 
 document.addEventListener("DOMContentLoaded", () => {
   setupEventListeners();
@@ -7,23 +8,13 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function setupEventListeners() {
-  // Authentication form submit
   document.getElementById("auth-form").addEventListener("submit", handleAuthSubmit);
-
-  // Switch between Log In and Register modes
   document.getElementById("auth-toggle-link").addEventListener("click", toggleAuthMode);
-
-  // Log Out button
   document.getElementById("logout-btn").addEventListener("click", handleLogout);
-
-  // Budget entry form
   document.getElementById("transaction-form").addEventListener("submit", handleFormSubmit);
-
-  // Cancel edit button
   document.getElementById("cancel-btn").addEventListener("click", resetForm);
 }
 
-// Check if user is already logged in
 function checkAuth() {
   const token = localStorage.getItem("access_token");
   const username = localStorage.getItem("username");
@@ -33,8 +24,6 @@ function checkAuth() {
     document.getElementById("app-section").style.display = "block";
     document.getElementById("logout-btn").style.display = "inline-block";
     document.getElementById("welcome-msg").textContent = `Logged in as ${username}`;
-    
-    // Auto-fill the "Logged By" field with the user's logged-in name
     document.getElementById("user_name").value = username;
 
     loadTransactions();
@@ -46,7 +35,6 @@ function checkAuth() {
   }
 }
 
-// Toggle between Login and Register form
 function toggleAuthMode(event) {
   event.preventDefault();
   isLoginMode = !isLoginMode;
@@ -69,7 +57,6 @@ function toggleAuthMode(event) {
   }
 }
 
-// Handle Login or Register API calls
 async function handleAuthSubmit(event) {
   event.preventDefault();
 
@@ -77,7 +64,6 @@ async function handleAuthSubmit(event) {
   const password = document.getElementById("auth-password").value;
 
   if (isLoginMode) {
-    // Log In (FastAPI expects form data for token endpoint)
     const formData = new URLSearchParams();
     formData.append("username", username);
     formData.append("password", password);
@@ -105,7 +91,6 @@ async function handleAuthSubmit(event) {
       alert("Unable to reach the server.");
     }
   } else {
-    // Register New User
     try {
       const response = await fetch("/register", {
         method: "POST",
@@ -120,7 +105,6 @@ async function handleAuthSubmit(event) {
       }
 
       alert("Account created successfully. You can now log in.");
-      // Switch to Login mode
       toggleAuthMode(event);
     } catch (error) {
       console.error("Registration failed:", error);
@@ -129,14 +113,12 @@ async function handleAuthSubmit(event) {
   }
 }
 
-// Log out user
 function handleLogout() {
   localStorage.removeItem("access_token");
   localStorage.removeItem("username");
   checkAuth();
 }
 
-// Fetch transactions with Authorization Header
 async function loadTransactions() {
   const token = localStorage.getItem("access_token");
 
@@ -158,12 +140,12 @@ async function loadTransactions() {
 
     currentTransactions = await response.json();
     renderTransactions(currentTransactions);
+    renderExpenseChart(currentTransactions);
   } catch (error) {
     console.error("Error loading transactions:", error);
   }
 }
 
-// Render transactions to the table
 function renderTransactions(transactions) {
   const tbody = document.getElementById("transaction-rows");
   tbody.innerHTML = "";
@@ -200,7 +182,67 @@ function renderTransactions(transactions) {
   document.getElementById("net-balance").textContent = (totalIncome - totalExpense).toFixed(2);
 }
 
-// Submit a new transaction or an update
+function renderExpenseChart(transactions) {
+  const categoryTotals = {};
+
+  transactions.forEach((tx) => {
+    if (tx.transaction_type === "expense") {
+      const cat = tx.category.trim() || "Uncategorized";
+      categoryTotals[cat] = (categoryTotals[cat] || 0) + tx.amount;
+    }
+  });
+
+  const categories = Object.keys(categoryTotals);
+  const amounts = Object.values(categoryTotals);
+
+  const canvas = document.getElementById("expense-chart");
+  const noDataMsg = document.getElementById("no-chart-data");
+
+  if (categories.length === 0) {
+    canvas.style.display = "none";
+    noDataMsg.style.display = "block";
+    if (expenseChart) {
+      expenseChart.destroy();
+      expenseChart = null;
+    }
+    return;
+  }
+
+  canvas.style.display = "block";
+  noDataMsg.style.display = "none";
+
+  const palette = [
+    "#e57373", "#81c784", "#64b5f6", "#ffb74d",
+    "#ba68c8", "#4db6ac", "#fff176", "#a1887f"
+  ];
+
+  if (expenseChart) {
+    expenseChart.destroy();
+  }
+
+  const ctx = canvas.getContext("2d");
+  expenseChart = new Chart(ctx, {
+    type: "doughnut",
+    data: {
+      labels: categories,
+      datasets: [{
+        data: amounts,
+        backgroundColor: palette.slice(0, categories.length),
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: "bottom"
+        }
+      }
+    }
+  });
+}
+
 async function handleFormSubmit(event) {
   event.preventDefault();
 
@@ -241,7 +283,6 @@ async function handleFormSubmit(event) {
   }
 }
 
-// Populate form for editing
 function startEdit(id) {
   const tx = currentTransactions.find((item) => item.id === id);
   if (!tx) return;
@@ -260,7 +301,6 @@ function startEdit(id) {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-// Reset form
 function resetForm() {
   const username = localStorage.getItem("username") || "";
   document.getElementById("editing-id").value = "";
@@ -271,7 +311,6 @@ function resetForm() {
   document.getElementById("cancel-btn").style.display = "none";
 }
 
-// Delete transaction
 async function deleteTransaction(id) {
   const confirmed = confirm("Are you sure you want to delete this entry?");
   if (!confirmed) return;

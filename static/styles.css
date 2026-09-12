@@ -229,3 +229,8 @@ th {
 .delete-btn:hover {
   background-color: #ffebee;
 }
+.chart-wrapper {
+  position: relative;
+  height: 280px;
+  width: 100%;
+}
