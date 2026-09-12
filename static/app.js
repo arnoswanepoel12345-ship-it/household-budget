@@ -186,9 +186,11 @@ function renderExpenseChart(transactions) {
   const categoryTotals = {};
 
   transactions.forEach((tx) => {
-    if (tx.transaction_type === "expense") {
-      const cat = tx.category.trim() || "Uncategorized";
-      categoryTotals[cat] = (categoryTotals[cat] || 0) + tx.amount;
+    // Normalise type to lowercase so "Expense" and "expense" both match
+    const type = (tx.transaction_type || "").toLowerCase();
+    if (type === "expense") {
+      const cat = (tx.category || "Uncategorized").trim();
+      categoryTotals[cat] = (categoryTotals[cat] || 0) + Number(tx.amount);
     }
   });
 
@@ -201,6 +203,7 @@ function renderExpenseChart(transactions) {
   if (categories.length === 0) {
     canvas.style.display = "none";
     noDataMsg.style.display = "block";
+    noDataMsg.textContent = "No expenses recorded yet.";
     if (expenseChart) {
       expenseChart.destroy();
       expenseChart = null;
