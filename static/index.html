@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Household Budget Tracker</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="header-top">
+        <h1>Household Budget Tracker</h1>
+        <button id="logout-btn" class="logout-btn" style="display: none;">Log Out</button>
+      </div>
+      <p id="welcome-msg">Log and track shared income and expenses</p>
+    </header>
+
+    <!-- Authentication Section (Shown when logged out) -->
+    <section id="auth-section" class="card">
+      <h2 id="auth-title">Log In</h2>
+      <form id="auth-form">
+        <div class="form-group">
+          <label for="auth-username">Username</label>
+          <input type="text" id="auth-username" placeholder="Enter username" required>
+        </div>
+        <div class="form-group">
+          <label for="auth-password">Password</label>
+          <input type="password" id="auth-password" placeholder="Enter password (minimum 6 characters)" required>
+        </div>
+        <button type="submit" id="auth-submit-btn">Log In</button>
+      </form>
+      <p class="auth-toggle">
+        <span id="auth-toggle-text">Need an account?</span>
+        <a href="#" id="auth-toggle-link">Register here</a>
+      </p>
+    </section>
+
+    <!-- App Section (Shown only after logging in) -->
+    <main id="app-section" style="display: none;">
+      <!-- Entry Form -->
+      <section class="card">
+        <h2 id="form-heading">Add New Entry</h2>
+        <form id="transaction-form">
+          <input type="hidden" id="editing-id" value="">
+
+          <div class="form-group">
+            <label for="title">Description</label>
+            <input type="text" id="title" placeholder="e.g., Groceries or Salary" required>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="amount">Amount</label>
+              <input type="number" id="amount" step="0.01" min="0.01" placeholder="0.00" required>
+            </div>
+
+            <div class="form-group">
+              <label for="transaction_type">Type</label>
+              <select id="transaction_type" required>
+                <option value="expense">Expense</option>
+                <option value="income">Income</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="category">Category</label>
+              <input type="text" id="category" placeholder="e.g., Food, Utilities, Rent" required>
+            </div>
+
+            <div class="form-group">
+              <label for="user_name">Logged By</label>
+              <input type="text" id="user_name" placeholder="Your name" required>
+            </div>
+          </div>
+
+          <div class="button-row">
+            <button type="submit" id="submit-btn">Save Entry</button>
+            <button type="button" id="cancel-btn" class="cancel-btn" style="display: none;">Cancel</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Summary Overview -->
+      <section class="summary-cards">
+        <div class="summary-item income">
+          <h3>Total Income</h3>
+          <p id="total-income">0.00</p>
+        </div>
+        <div class="summary-item expense">
+          <h3>Total Expenses</h3>
+          <p id="total-expense">0.00</p>
+        </div>
+        <div class="summary-item balance">
+          <h3>Net Balance</h3>
+          <p id="net-balance">0.00</p>
+        </div>
+      </section>
+
+      <!-- Transactions List -->
+      <section class="card">
+        <h2>Transaction History</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Description</th>
+              <th>Type</th>
+              <th>Category</th>
+              <th>Logged By</th>
+              <th>Amount</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="transaction-rows">
+            <!-- Populated dynamically -->
+          </tbody>
+        </table>
+      </section>
+    </main>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+# Virtual environment (never upload dependencies)
+venv/
+__pycache__/
+
+# Local database file (never upload local private data)
+budget.db
+
+# Environment variables containing secret keys
+.env
