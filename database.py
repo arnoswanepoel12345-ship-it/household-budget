@@ -1,22 +1,29 @@
+import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
-# Define the location of the SQLite database file on your machine
-DATABASE_URL = "sqlite:///./budget.db"
+# If Render provides a DATABASE_URL, use PostgreSQL; otherwise default to local SQLite
+DATABASE_URL = os.getenv("DATABASE_URL")
 
-# Create the database engine
-# connect_args={"check_same_thread": False} is required only for SQLite in FastAPI
-engine = create_engine(
-    DATABASE_URL, connect_args={"check_same_thread": False}
-)
+if DATABASE_URL:
+    # SQLAlchemy requires URLs starting with "postgresql://", but some cloud
+    # providers supply "postgres://". This replaces it if necessary.
+    if DATABASE_URL.startswith("postgres://"):
+        DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+    
+    engine = create_engine(DATABASE_URL)
+else:
+    # Local SQLite fallback for developing on your ThinkPad
+    SQLALCHEMY_DATABASE_URL = "sqlite:///./budget.db"
+    engine = create_engine(
+        SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
+    )
 
-# Each instance of SessionLocal will be a working session with the database
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# Base class that our data models will inherit from
 Base = declarative_base()
 
-# Helper function to open and automatically close database sessions safely
+
 def get_db():
     db = SessionLocal()
     try:
