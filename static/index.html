@@ -3,60 +3,186 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Household Budget Tracker</title>
+  <title>Personal Finance Command Centre</title>
   <link rel="stylesheet" href="/static/styles.css">
-  <!-- Load Chart.js library locally -->
   <script src="/static/chart.min.js"></script>
+</head>
 <body>
-  <div class="container">
-    <header>
-      <div class="header-top">
-        <h1>Household Budget Tracker</h1>
-        <button id="logout-btn" class="logout-btn" style="display: none;">Log Out</button>
+  <div class="app-layout">
+
+    <!-- Authentication Screen (Shown when logged out) -->
+    <div id="auth-screen" class="auth-container">
+      <div class="auth-card">
+        <h1 class="brand-title">Household Command</h1>
+        <p class="auth-subtitle" id="auth-subtitle">Log in to manage your household finances</p>
+
+        <form id="auth-form">
+          <div class="input-group">
+            <label for="auth-username">Username</label>
+            <input type="text" id="auth-username" placeholder="Enter username" required autocomplete="username">
+          </div>
+          <div class="input-group">
+            <label for="auth-password">Password</label>
+            <input type="password" id="auth-password" placeholder="Enter password (min. 6 characters)" required autocomplete="current-password">
+          </div>
+          <button type="submit" id="auth-submit-btn" class="btn btn-primary btn-block">Log In</button>
+        </form>
+
+        <div class="auth-toggle-box">
+          <span id="auth-toggle-text">Need an account?</span>
+          <button type="button" id="auth-toggle-link" class="btn-link">Create one here</button>
+        </div>
       </div>
-      <p id="welcome-msg">Log and track shared income and expenses</p>
-    </header>
+    </div>
 
-    <!-- Authentication Section (Shown when logged out) -->
-    <section id="auth-section" class="card">
-      <h2 id="auth-title">Log In</h2>
-      <form id="auth-form">
-        <div class="form-group">
-          <label for="auth-username">Username</label>
-          <input type="text" id="auth-username" placeholder="Enter username" required>
-        </div>
-        <div class="form-group">
-          <label for="auth-password">Password</label>
-          <input type="password" id="auth-password" placeholder="Enter password (minimum 6 characters)" required>
-        </div>
-        <button type="submit" id="auth-submit-btn">Log In</button>
-      </form>
-      <p class="auth-toggle">
-        <span id="auth-toggle-text">Need an account?</span>
-        <a href="#" id="auth-toggle-link">Register here</a>
-      </p>
-    </section>
+    <!-- Main Command Centre (Shown when authenticated) -->
+    <main id="app-screen" class="dashboard-main" style="display: none;">
 
-    <!-- App Section (Shown only after logging in) -->
-    <main id="app-section" style="display: none;">
-      <!-- Entry Form -->
-      <section class="card">
-        <h2 id="form-heading">Add New Entry</h2>
+      <!-- Top Header Navigation Bar -->
+      <header class="top-nav">
+        <div class="nav-left">
+          <span class="user-greeting" id="user-greeting">Welcome back</span>
+          <span class="active-period" id="current-period">September</span>
+        </div>
+        <div class="nav-actions">
+          <button id="quick-add-btn" class="btn btn-primary" type="button">+ Quick Entry</button>
+          <button id="logout-btn" class="btn btn-secondary" type="button">Log Out</button>
+        </div>
+      </header>
+
+      <!-- Financial Assistant Alert / Insights Banner -->
+      <section class="assistant-banner" id="assistant-banner">
+        <div class="assistant-icon">⚡</div>
+        <div class="assistant-content">
+          <h4 id="assistant-headline">Financial Pulse</h4>
+          <p id="assistant-message">Loading financial insights...</p>
+        </div>
+      </section>
+
+      <!-- Top KPI Metric Cards -->
+      <section class="kpi-grid">
+        <div class="kpi-card highlight">
+          <span class="kpi-label">Available to Spend</span>
+          <h2 class="kpi-value" id="kpi-available">R0.00</h2>
+          <span class="kpi-subtext">Safe discretionary margin</span>
+        </div>
+
+        <div class="kpi-card">
+          <span class="kpi-label">Income (This Month)</span>
+          <h2 class="kpi-value positive" id="kpi-income">R0.00</h2>
+          <span class="kpi-subtext" id="kpi-income-sub">Recorded inflow</span>
+        </div>
+
+        <div class="kpi-card">
+          <span class="kpi-label">Expenses (This Month)</span>
+          <h2 class="kpi-value negative" id="kpi-expense">R0.00</h2>
+          <span class="kpi-subtext" id="kpi-expense-sub">Recorded outflow</span>
+        </div>
+
+        <div class="kpi-card">
+          <span class="kpi-label">Net Saved</span>
+          <h2 class="kpi-value neutral" id="kpi-saved">R0.00</h2>
+          <span class="kpi-subtext">Retained this period</span>
+        </div>
+      </section>
+
+      <!-- Dashboard Two-Column Grid -->
+      <div class="dashboard-grid">
+
+        <!-- Left Column: Category Budgets & Spending Distribution -->
+        <section class="panel">
+          <div class="panel-header">
+            <h3>Monthly Budget Limits</h3>
+            <button id="manage-budgets-btn" class="btn-link" type="button">+ Set Limit</button>
+          </div>
+          <div id="budget-progress-list" class="progress-list">
+            <p class="empty-state">No category budget limits set yet.</p>
+          </div>
+
+          <div class="panel-divider"></div>
+
+          <div class="panel-header">
+            <h3>Expense Breakdown</h3>
+          </div>
+          <div class="chart-container">
+            <canvas id="expense-chart"></canvas>
+            <p id="no-chart-data" class="empty-state" style="display: none;">No expenses recorded yet this month.</p>
+          </div>
+        </section>
+
+        <!-- Right Column: Upcoming Bills & Financial Goals -->
+        <section class="panel">
+          <div class="panel-header">
+            <h3>Upcoming Payments</h3>
+            <button id="add-bill-btn" class="btn-link" type="button">+ Add Bill</button>
+          </div>
+          <div id="upcoming-bills-list" class="bill-list">
+            <p class="empty-state">No recurring bills recorded.</p>
+          </div>
+
+          <div class="panel-divider"></div>
+
+          <div class="panel-header">
+            <h3>Savings Goals</h3>
+            <button id="add-goal-btn" class="btn-link" type="button">+ New Target</button>
+          </div>
+          <div id="financial-goals-list" class="goals-list">
+            <p class="empty-state">No financial targets defined.</p>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- Transaction History Table -->
+      <section class="panel table-panel">
+        <div class="panel-header">
+          <h3>Transaction History</h3>
+          <span class="record-counter" id="record-count">0 items</span>
+        </div>
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Description</th>
+                <th>Type</th>
+                <th>Category</th>
+                <th>Account</th>
+                <th>Date</th>
+                <th>Logged By</th>
+                <th class="align-right">Amount</th>
+                <th class="align-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="transaction-rows">
+              <!-- Populated dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Modal 1: Quick Add Transaction -->
+    <div id="transaction-modal" class="modal" style="display: none;">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3 id="tx-modal-title">Record Transaction</h3>
+          <button type="button" class="close-modal" id="close-tx-modal">&times;</button>
+        </div>
         <form id="transaction-form">
           <input type="hidden" id="editing-id" value="">
 
-          <div class="form-group">
+          <div class="input-group">
             <label for="title">Description</label>
-            <input type="text" id="title" placeholder="e.g., Groceries or Salary" required>
+            <input type="text" id="title" placeholder="e.g., Groceries, Rent, Salary" required>
           </div>
 
           <div class="form-row">
-            <div class="form-group">
-              <label for="amount">Amount</label>
+            <div class="input-group">
+              <label for="amount">Amount (R)</label>
               <input type="number" id="amount" step="0.01" min="0.01" placeholder="0.00" required>
             </div>
-
-            <div class="form-group">
+            <div class="input-group">
               <label for="transaction_type">Type</label>
               <select id="transaction_type" required>
                 <option value="expense">Expense</option>
@@ -66,71 +192,128 @@
           </div>
 
           <div class="form-row">
-            <div class="form-group">
+            <div class="input-group">
               <label for="category">Category</label>
-              <input type="text" id="category" placeholder="e.g., Food, Utilities, Rent" required>
+              <input type="text" id="category" placeholder="e.g., Food, Housing, Utilities" required>
             </div>
-
-            <div class="form-group">
-              <label for="user_name">Logged By</label>
-              <input type="text" id="user_name" placeholder="Your name" required>
+            <div class="input-group">
+              <label for="account">Account</label>
+              <input type="text" id="account" placeholder="e.g., Cheque, Savings, Cash" value="Cheque">
             </div>
           </div>
 
-          <div class="button-row">
-            <button type="submit" id="submit-btn">Save Entry</button>
-            <button type="button" id="cancel-btn" class="cancel-btn" style="display: none;">Cancel</button>
+          <div class="form-row">
+            <div class="input-group">
+              <label for="tx-date">Date</label>
+              <input type="date" id="tx-date" required>
+            </div>
+            <div class="input-group">
+              <label for="user_name">Logged By</label>
+              <input type="text" id="user_name" placeholder="Name" required>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label for="notes">Notes / Memo (Optional)</label>
+            <input type="text" id="notes" placeholder="Reference, vendor, or details">
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" id="cancel-tx-btn">Cancel</button>
+            <button type="submit" class="btn btn-primary" id="save-tx-btn">Save Entry</button>
           </div>
         </form>
-      </section>
+      </div>
+    </div>
 
-      <!-- Summary Overview -->
-      <section class="summary-cards">
-        <div class="summary-item income">
-          <h3>Total Income</h3>
-          <p id="total-income">0.00</p>
+    <!-- Modal 2: Set Budget Category Limit -->
+    <div id="budget-modal" class="modal" style="display: none;">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3>Set Monthly Category Limit</h3>
+          <button type="button" class="close-modal" id="close-budget-modal">&times;</button>
         </div>
-        <div class="summary-item expense">
-          <h3>Total Expenses</h3>
-          <p id="total-expense">0.00</p>
-        </div>
-        <div class="summary-item balance">
-          <h3>Net Balance</h3>
-          <p id="net-balance">0.00</p>
-        </div>
-      </section>
+        <form id="budget-form">
+          <div class="input-group">
+            <label for="budget-category">Category Name</label>
+            <input type="text" id="budget-category" placeholder="e.g., Food, Housing, Transport" required>
+          </div>
+          <div class="input-group">
+            <label for="budget-limit">Monthly Cap (R)</label>
+            <input type="number" id="budget-limit" step="0.01" min="1" placeholder="e.g., 5000" required>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" id="cancel-budget-btn">Cancel</button>
+            <button type="submit" class="btn btn-primary">Save Budget</button>
+          </div>
+        </form>
+      </div>
+    </div>
 
-      <!-- Spending Breakdown Chart -->
-      <section class="card" id="chart-card">
-        <h2>Expense Breakdown by Category</h2>
-        <div class="chart-wrapper">
-          <canvas id="expense-chart"></canvas>
+    <!-- Modal 3: Recurring Bill Setup -->
+    <div id="bill-modal" class="modal" style="display: none;">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3>Add Recurring Bill</h3>
+          <button type="button" class="close-modal" id="close-bill-modal">&times;</button>
         </div>
-        <p id="no-chart-data" style="display: none; text-align: center; color: #666; padding: 20px 0;">
-          No expenses recorded yet.
-        </p>
-      </section>
+        <form id="bill-form">
+          <div class="input-group">
+            <label for="bill-title">Bill Title</label>
+            <input type="text" id="bill-title" placeholder="e.g., Rates, Car Insurance, Wi-Fi" required>
+          </div>
+          <div class="form-row">
+            <div class="input-group">
+              <label for="bill-amount">Amount (R)</label>
+              <input type="number" id="bill-amount" step="0.01" min="0.01" placeholder="0.00" required>
+            </div>
+            <div class="input-group">
+              <label for="bill-due-date">Due Date</label>
+              <input type="date" id="bill-due-date" required>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" id="cancel-bill-btn">Cancel</button>
+            <button type="submit" class="btn btn-primary">Save Bill</button>
+          </div>
+        </form>
+      </div>
+    </div>
 
-      <!-- Transactions List -->
-      <section class="card">
-        <h2>Transaction History</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>Description</th>
-              <th>Type</th>
-              <th>Category</th>
-              <th>Logged By</th>
-              <th>Amount</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="transaction-rows">
-            <!-- Populated dynamically -->
-          </tbody>
-        </table>
-      </section>
-    </main>
+    <!-- Modal 4: Financial Goal Setup -->
+    <div id="goal-modal" class="modal" style="display: none;">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3>Set Financial Target</h3>
+          <button type="button" class="close-modal" id="close-goal-modal">&times;</button>
+        </div>
+        <form id="goal-form">
+          <div class="input-group">
+            <label for="goal-title">Target Goal</label>
+            <input type="text" id="goal-title" placeholder="e.g., Emergency Fund, Holiday" required>
+          </div>
+          <div class="form-row">
+            <div class="input-group">
+              <label for="goal-target">Target Amount (R)</label>
+              <input type="number" id="goal-target" step="0.01" min="1" placeholder="e.g., 30000" required>
+            </div>
+            <div class="input-group">
+              <label for="goal-current">Currently Saved (R)</label>
+              <input type="number" id="goal-current" step="0.01" min="0" placeholder="0.00" value="0.00">
+            </div>
+          </div>
+          <div class="input-group">
+            <label for="goal-target-date">Target Date (Optional)</label>
+            <input type="date" id="goal-target-date">
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" id="cancel-goal-btn">Cancel</button>
+            <button type="submit" class="btn btn-primary">Save Target</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
   </div>
 
   <script src="/static/app.js"></script>
